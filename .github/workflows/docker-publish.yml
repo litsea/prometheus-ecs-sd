@@ -18,5 +18,5 @@ jobs:
       id-token: write
 
     uses: litsea/actions/.github/workflows/docker-publish.yml@main
-    with:
+    secrets:
       password: ${{ secrets.GITHUB_TOKEN }}
