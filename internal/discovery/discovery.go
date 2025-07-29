@@ -10,17 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/prometheus/common/model"
-
 	"github.com/litsea/prometheus-ecs-sd/internal/client"
 	"github.com/litsea/prometheus-ecs-sd/internal/log"
-)
-
-var (
-	labelEcsPrefix           = model.MetaLabelPrefix + "ecs_"
-	labelEcsServiceTagPrefix = labelEcsPrefix + "service_tag_"
-	labelClusterName         = model.LabelName(labelEcsPrefix + "cluster_name")
-	labelServiceName         = model.LabelName(labelEcsPrefix + "service_name")
 )
 
 type Option func(*Discovery) error
