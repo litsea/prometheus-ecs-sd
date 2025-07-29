@@ -1,0 +1,13 @@
+name: Docker Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+jobs:
+  docker-publish:
+    uses: litsea/actions/.github/workflows/docker-publish.yml@main
