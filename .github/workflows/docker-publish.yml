@@ -11,3 +11,5 @@ on:
 jobs:
   docker-publish:
     uses: litsea/actions/.github/workflows/docker-publish.yml@main
+    with:
+      password: '${{ secrets.GITHUB_TOKEN }}'
