@@ -15,6 +15,14 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
+var (
+	labelEcsPrefix           = model.MetaLabelPrefix + "ecs_"
+	labelEcsServiceTagPrefix = labelEcsPrefix + "service_tag_"
+	labelClusterName         = model.LabelName(labelEcsPrefix + "cluster_name")
+	labelServiceName         = model.LabelName(labelEcsPrefix + "service_name")
+	labelTaskID              = model.LabelName(labelEcsPrefix + "task_id")
+)
+
 func (d *Discovery) writeScrapeConfig(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -94,13 +102,9 @@ func (d *Discovery) buildScrapeConfig(ctx context.Context) ([]*targetgroup.Group
 					clusterName, serviceName, err)
 			}
 
-			tg := &targetgroup.Group{
-				Source: clusterName + "/" + serviceName,
-				Labels: tagsToLabelSet(tags.Tags).Merge(model.LabelSet{
-					labelClusterName: model.LabelValue(clusterName),
-					labelServiceName: model.LabelValue(serviceName),
-				}),
-				Targets: make([]model.LabelSet, 0, len(tasks.Tasks)),
+			metricsPort := getTag(tags.Tags, "metrics_port")
+			if metricsPort == "" {
+				metricsPort = "80"
 			}
 
 			for _, task := range tasks.Tasks {
@@ -120,21 +124,40 @@ func (d *Discovery) buildScrapeConfig(ctx context.Context) ([]*targetgroup.Group
 				if ip == nil {
 					continue
 				}
-				tg.Targets = append(tg.Targets, model.LabelSet{
-					model.AddressLabel: model.LabelValue(*ip),
-				})
-			}
 
-			if len(tg.Targets) == 0 {
-				continue
-			}
+				taskArn := *task.TaskArn
+				taskID := taskArn[strings.LastIndex(taskArn, "/")+1:]
+				tg := &targetgroup.Group{
+					Source: clusterName + "/" + serviceName,
+					Labels: tagsToLabelSet(tags.Tags).Merge(model.LabelSet{
+						labelClusterName: model.LabelValue(clusterName),
+						labelServiceName: model.LabelValue(serviceName),
+						labelTaskID:      model.LabelValue(taskID),
+					}),
+					Targets: []model.LabelSet{
+						{
+							model.AddressLabel: model.LabelValue(*ip + ":" + metricsPort),
+						},
+					},
+				}
 
-			tgs = append(tgs, tg)
+				tgs = append(tgs, tg)
+			}
 		}
 	}
 
 	d.logger.Info("scraped ECS targets", "clusters", d.clusters, "targets", len(tgs))
 	return tgs, nil
+}
+
+func getTag(tags []types.Tag, key string) string {
+	for _, tag := range tags {
+		if *tag.Key == key {
+			return *tag.Value
+		}
+	}
+
+	return ""
 }
 
 func tagsToLabelSet(tags []types.Tag) model.LabelSet {
