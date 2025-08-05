@@ -3,7 +3,7 @@ module github.com/litsea/prometheus-ecs-sd
 go 1.24.0
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.37.0
+	github.com/aws/aws-sdk-go-v2 v1.37.2
 	github.com/aws/aws-sdk-go-v2/config v1.30.0
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.61.0
 	github.com/prometheus/common v0.65.0
