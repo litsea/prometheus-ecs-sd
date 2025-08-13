@@ -103,8 +103,9 @@ func (d *Discovery) buildScrapeConfig(ctx context.Context) ([]*targetgroup.Group
 			}
 
 			metricsPort := getTag(tags.Tags, "metrics_port")
+			// Ignore when there is no metrics_port tag
 			if metricsPort == "" {
-				metricsPort = "80"
+				continue
 			}
 
 			for _, task := range tasks.Tasks {
