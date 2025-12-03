@@ -64,7 +64,8 @@ func (d *Discovery) buildScrapeConfig(ctx context.Context) ([]*targetgroup.Group
 		d.logger.Info("listing ECS services", "cluster", clusterName)
 
 		services, err := d.client.ListServices(ctx, &ecs.ListServicesInput{
-			Cluster: clusterArn,
+			Cluster:    clusterArn,
+			MaxResults: aws.Int32(100),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("listing ECS services failed: cluster=%s, %w",
@@ -79,6 +80,7 @@ func (d *Discovery) buildScrapeConfig(ctx context.Context) ([]*targetgroup.Group
 			taskList, err := d.client.ListTasks(ctx, &ecs.ListTasksInput{
 				Cluster:     clusterArn,
 				ServiceName: aws.String(service),
+				MaxResults:  aws.Int32(100),
 			})
 			if err != nil {
 				return nil, fmt.Errorf("listing ECS tasks failed: cluster=%s, service=%s, %w",
